@@ -13,7 +13,7 @@ function systemnombre(){
     }
 }
 }
-//!!
+
 systemnombre($_POST["nombres"]);
 
 ?>
