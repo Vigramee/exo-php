@@ -14,6 +14,6 @@ function systemnombre(){
 }
 }
 
-systemnombre($_POST["nombre"]);
+systemnombre($_POST["nombres"]);
 
 ?>
