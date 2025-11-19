@@ -1,5 +1,31 @@
+<h1>ajouter un résulta : </h1>
+<form method="post">
+
+<label>Nom : </label>
+<input type="text" name= "nom"></br>
+
+<label>Pays : </label>
+<input type="text" name= "pays"></br>
+
+<label>Course : </label>
+<input type="text" name= "course"></br>
+
+<label>Temps : </label>
+<input type="number" name="temps" step="0.01"></br>
+
+<button type="submit">Ajouter</button>
+
+
+</form>
+
+
+
 <?php
 $connexion = new PDO('mysql:host=localhost;dbname=jo;charset=utf8', 'root', '');
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    ajout($connexion);
+}
+
   
 $colonnes = ['nom','pays','course','temps'];
 $colonneTri = in_array($_GET['sort'] ?? '', $colonnes) ? $_GET['sort'] : 'nom';
@@ -15,6 +41,18 @@ function fleche($col, $colTri, $ordre) {
     return '';
 }
 
+function ajout($connexion) {
+    if (!empty($_POST['nom']) && !empty($_POST['pays']) && !empty($_POST['course']) && !empty($_POST['temps'])) {
+        $nom = htmlspecialchars($_POST['nom']);
+        $pays = htmlspecialchars($_POST['pays']);
+        $course = htmlspecialchars($_POST['course']);
+        $temps = (float)$_POST['temps'];
+
+        $requete = $connexion->prepare("INSERT INTO `100` (nom, pays, course, temps) VALUES (?, ?, ?, ?)");
+        $requete->execute([$nom, $pays, $course, $temps]);
+    }
+}
+    
  
 function lienTri($col,$colTri,$ordre) {
     $nouvelOrdre = ($col === $colTri && $ordre==='ASC') ? 'desc' : 'asc';
