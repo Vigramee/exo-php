@@ -46,7 +46,7 @@ function fleche($col, $colTri, $ordre) {
 function ajout($connexion) {
     if (!empty($_POST['nom']) && !empty($_POST['pays']) && !empty($_POST['course']) && !empty($_POST['temps'])) {
         $nom = htmlspecialchars($_POST['nom']);
-        $pays = strtoupper(substr(trim($_POST['pays']), 0, 3)); // majuscules + 3 lettres max
+        $pays = strtoupper(substr(trim($_POST['pays']), 0, 3));
         $course = htmlspecialchars($_POST['course']);
         $temps = (float)$_POST['temps'];
 
