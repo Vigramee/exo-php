@@ -1,3 +1,11 @@
+<?php
+$connexion = new PDO('mysql:host=localhost;dbname=jo;charset=utf8', 'root', '');
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    ajout($connexion);
+}
+
+?>
+
 <h1>ajouter un résulta : </h1>
 <form method="post">
 
@@ -8,7 +16,7 @@
 <input type="text" name= "pays"></br>
 
 <label>Course : </label>
-<input type="text" name= "course"></br>
+<?= listeCourses($connexion) ?>
 
 <label>Temps : </label>
 <input type="number" name="temps" step="0.01"></br>
@@ -21,12 +29,6 @@
 
 
 <?php
-$connexion = new PDO('mysql:host=localhost;dbname=jo;charset=utf8', 'root', '');
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    ajout($connexion);
-}
-
-  
 $colonnes = ['nom','pays','course','temps'];
 $colonneTri = in_array($_GET['sort'] ?? '', $colonnes) ? $_GET['sort'] : 'nom';
 $ordreTri = (strtolower($_GET['order'] ?? '') === 'desc') ? 'DESC' : 'ASC';
@@ -57,12 +59,36 @@ function pagination($connexion, $colonneTri, $ordreTri, $parPage = 10) {
     $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
     $offset = ($page - 1) * $parPage;
 
-    $requete = $connexion->prepare("SELECT * FROM `100` ORDER BY $colonneTri $ordreTri LIMIT :limit OFFSET :offset");
+    $recherche = $_GET['recherche'] ?? '';
+    $sql = "SELECT * FROM `100`";
+    $params = [];
+
+    if (!empty($recherche)) {
+        $sql .= " WHERE nom LIKE :rech OR pays LIKE :rech";
+        $params[':rech'] = '%' . $recherche . '%';
+    }
+
+    $sql .= " ORDER BY $colonneTri $ordreTri LIMIT :limit OFFSET :offset";
+
+    $requete = $connexion->prepare($sql);
+    foreach ($params as $key => $value) {
+        $requete->bindValue($key, $value);
+    }
     $requete->bindValue(':limit', $parPage, PDO::PARAM_INT);
     $requete->bindValue(':offset', $offset, PDO::PARAM_INT);
     $requete->execute();
 
     return $requete->fetchAll();
+}
+
+function listeCourses($connexion) {
+    $courses = $connexion->query("SELECT DISTINCT course FROM `100` ORDER BY course ASC")->fetchAll(PDO::FETCH_COLUMN);
+    $html = "<select name='course'>";
+    foreach ($courses as $c) {
+        $html .= "<option value='" . htmlspecialchars($c) . "'>" . htmlspecialchars($c) . "</option>";
+    }
+    $html .= "</select><br>";
+    return $html;
 }
     
  
@@ -72,7 +98,10 @@ function lienTri($col,$colTri,$ordre) {
 }
  
 ?>
- 
+<form method="get" style="margin-bottom: 20px;">
+    <input type="text" name="recherche" placeholder="Rechercher par nom ou pays" value="<?= htmlspecialchars($_GET['recherche'] ?? '') ?>">
+    <button type="submit">Rechercher</button>
+</form>
 <table border="3">
     <tr>
         <th><?= lienTri('nom',$colonneTri,$ordreTri) ?></th>
@@ -98,7 +127,14 @@ function lienTri($col,$colTri,$ordre) {
 </table>
 
 <?php
-$totalLignes = $connexion->query("SELECT COUNT(*) FROM `100`")->fetchColumn();
+$recherche = $_GET['recherche'] ?? '';
+if (!empty($recherche)) {
+    $stmt = $connexion->prepare("SELECT COUNT(*) FROM `100` WHERE nom LIKE :rech OR pays LIKE :rech");
+    $stmt->execute([':rech' => '%' . $recherche . '%']);
+    $totalLignes = $stmt->fetchColumn();
+} else {
+    $totalLignes = $connexion->query("SELECT COUNT(*) FROM `100`")->fetchColumn();
+}
 $totalPages = ceil($totalLignes / 10);
 $pageActuelle = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 ?>
