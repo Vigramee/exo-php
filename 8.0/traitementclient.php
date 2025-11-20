@@ -12,8 +12,8 @@ catch(PDOexception $e){
 
 
 if (isset($_POST['register'])) {
-    $username = trim($_POST['username'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+    $username = isset($_POST['username']) ? $_POST['username'] : '';
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
 
     if ($username === '') {
         echo "<b>Le champ username est vide</b>";
@@ -31,8 +31,8 @@ if (isset($_POST['register'])) {
 }
 
 if(isset($_POST['connect'])) {
-    $username = trim($_POST['username'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+    $username = isset($_POST['username']) ? $_POST['username'] : '';
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
     $stmt = $dbh ->prepare("select * from jo.`100`;");
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
